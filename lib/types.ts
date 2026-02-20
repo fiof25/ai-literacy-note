@@ -20,6 +20,8 @@ export interface Sticky {
   extraThoughts: string;
   color: string;
   rotation: number;
+  x: number;
+  y: number;
   comments: Comment[];
   createdAt: string;
 }

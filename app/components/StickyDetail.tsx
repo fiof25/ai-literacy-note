@@ -49,13 +49,15 @@ interface Props {
   savedName: string;
   onClose: () => void;
   onCommentAdded: (stickyId: string, comment: Comment) => void;
+  onDelete: (id: string) => void;
 }
 
-export default function StickyDetail({ sticky, savedName, onClose, onCommentAdded }: Props) {
+export default function StickyDetail({ sticky, savedName, onClose, onCommentAdded, onDelete }: Props) {
   const [commentAuthor, setCommentAuthor] = useState(savedName || '');
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const sentiment = SENTIMENT_MAP[sticky.sentiment];
 
@@ -169,10 +171,30 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
             </div>
           )}
 
-          {/* Author + date */}
-          <p className="text-xs text-gray-400">
-            Posted by <span className="font-medium text-gray-600">{sticky.authorName}</span> · {formatDate(sticky.createdAt)}
-          </p>
+          {/* Author + date + delete */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              Posted by <span className="font-medium text-gray-600">{sticky.authorName}</span> · {formatDate(sticky.createdAt)}
+            </p>
+            <button
+              onClick={() => {
+                if (confirmDelete) {
+                  onDelete(sticky.id);
+                  onClose();
+                } else {
+                  setConfirmDelete(true);
+                  setTimeout(() => setConfirmDelete(false), 2500);
+                }
+              }}
+              className="text-xs font-semibold px-2 py-1 rounded-lg transition-colors"
+              style={{
+                background: confirmDelete ? 'rgba(220,38,38,0.1)' : 'transparent',
+                color: confirmDelete ? '#dc2626' : '#9ca3af',
+              }}
+            >
+              {confirmDelete ? 'Confirm delete?' : 'Delete'}
+            </button>
+          </div>
 
           {/* Divider */}
           <hr className="border-gray-100" />

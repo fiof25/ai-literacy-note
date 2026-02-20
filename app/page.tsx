@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Sticky, Comment } from '@/lib/types';
 import StickyCard from './components/StickyCard';
 import StickyDetail from './components/StickyDetail';
@@ -14,289 +14,322 @@ const INDUSTRIES = [
 ];
 
 const AI_TYPES = [
-  { value: 'generative', label: '🎨 Generative' },
-  { value: 'predictive', label: '📊 Predictive' },
-  { value: 'automation', label: '⚙️ Automation' },
+  { value: 'generative',     label: '🎨 Generative' },
+  { value: 'predictive',     label: '📊 Predictive' },
+  { value: 'automation',     label: '⚙️ Automation' },
   { value: 'conversational', label: '💬 Conversational' },
-  { value: 'unsure', label: '🤷 Not sure' },
+  { value: 'unsure',         label: '🤷 Not sure' },
 ];
 
+const NOTE_WIDTH = 220;
+
 export default function BoardPage() {
-  const [stickies, setStickies] = useState<Sticky[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stickies, setStickies]                   = useState<Sticky[]>([]);
+  const [loading, setLoading]                     = useState(true);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
-  const [selectedSticky, setSelectedSticky] = useState<Sticky | null>(null);
-  const [savedName, setSavedName] = useState('');
+  const [selectedSticky, setSelectedSticky]       = useState<Sticky | null>(null);
+  const [savedName, setSavedName]                 = useState('');
+  const [draggingId, setDraggingId]               = useState<string | null>(null);
 
   // Filters
-  const [filterIndustry, setFilterIndustry] = useState('');
-  const [filterAiType, setFilterAiType] = useState('');
+  const [filterIndustry, setFilterIndustry]   = useState('');
+  const [filterAiType, setFilterAiType]       = useState('');
   const [filterSentiment, setFilterSentiment] = useState('');
-  const [filterRealness, setFilterRealness] = useState('');
-  const [searchText, setSearchText] = useState('');
+  const [filterRealness, setFilterRealness]   = useState('');
+  const [searchText, setSearchText]           = useState('');
 
-  // Load saved name from localStorage
+  // Drag state stored in refs to avoid re-registering event listeners
+  const dragRef = useRef<{
+    id: string;
+    startMouseX: number;
+    startMouseY: number;
+    startNoteX: number;
+    startNoteY: number;
+    moved: boolean;
+  } | null>(null);
+  const currentDragPos = useRef<{ x: number; y: number } | null>(null);
+  // Keep a ref to current stickies to avoid stale closure in mouseup
+  const stickiesRef = useRef(stickies);
+  useEffect(() => { stickiesRef.current = stickies; }, [stickies]);
+
   useEffect(() => {
-    const name = localStorage.getItem('workshopName') || '';
-    setSavedName(name);
+    setSavedName(localStorage.getItem('workshopName') || '');
   }, []);
 
   const fetchStickies = useCallback(async () => {
     try {
       const res = await fetch('/api/stickies');
       if (!res.ok) return;
-      const data: Sticky[] = await res.json();
-      setStickies(data);
-    } catch {
-      // fail silently on polling errors
-    } finally {
-      setLoading(false);
-    }
+      setStickies(await res.json());
+    } catch { /* fail silently */ } finally { setLoading(false); }
   }, []);
 
-  // Initial load + poll every 5s
   useEffect(() => {
     fetchStickies();
-    const interval = setInterval(fetchStickies, 5000);
-    return () => clearInterval(interval);
+    const t = setInterval(fetchStickies, 5000);
+    return () => clearInterval(t);
   }, [fetchStickies]);
+
+  // Register drag mouse handlers once
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!dragRef.current) return;
+      const dx = e.clientX - dragRef.current.startMouseX;
+      const dy = e.clientY - dragRef.current.startMouseY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragRef.current.moved = true;
+
+      const newX = Math.max(0, dragRef.current.startNoteX + dx);
+      const newY = Math.max(0, dragRef.current.startNoteY + dy);
+      currentDragPos.current = { x: newX, y: newY };
+
+      setStickies((prev) =>
+        prev.map((s) => (s.id === dragRef.current?.id ? { ...s, x: newX, y: newY } : s))
+      );
+    }
+
+    function onMouseUp() {
+      if (!dragRef.current) return;
+      const { id, moved } = dragRef.current;
+
+      if (moved && currentDragPos.current) {
+        const { x, y } = currentDragPos.current;
+        fetch(`/api/stickies/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ x, y }),
+        }).catch(() => {});
+      } else if (!moved) {
+        // Was a click — open the detail modal
+        const s = stickiesRef.current.find((s) => s.id === id);
+        if (s) setSelectedSticky(s);
+      }
+
+      dragRef.current = null;
+      currentDragPos.current = null;
+      setDraggingId(null);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []); // register once
+
+  function startDrag(e: React.MouseEvent, sticky: Sticky) {
+    e.preventDefault();
+    dragRef.current = {
+      id: sticky.id,
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startNoteX: sticky.x ?? 50,
+      startNoteY: sticky.y ?? 50,
+      moved: false,
+    };
+    currentDragPos.current = { x: sticky.x ?? 50, y: sticky.y ?? 50 };
+    setDraggingId(sticky.id);
+  }
 
   function handleNewSticky(sticky: Sticky) {
     setStickies((prev) => [sticky, ...prev]);
     setShowQuestionnaire(false);
   }
 
+  async function handleDelete(id: string) {
+    await fetch(`/api/stickies/${id}`, { method: 'DELETE' }).catch(() => {});
+    setStickies((prev) => prev.filter((s) => s.id !== id));
+    if (selectedSticky?.id === id) setSelectedSticky(null);
+  }
+
   function handleCommentAdded(stickyId: string, comment: Comment) {
     setStickies((prev) =>
-      prev.map((s) =>
-        s.id === stickyId ? { ...s, comments: [...s.comments, comment] } : s
-      )
+      prev.map((s) => s.id === stickyId ? { ...s, comments: [...s.comments, comment] } : s)
     );
-    // Also update selected sticky if it's open
     setSelectedSticky((prev) =>
-      prev && prev.id === stickyId
-        ? { ...prev, comments: [...prev.comments, comment] }
-        : prev
+      prev?.id === stickyId ? { ...prev, comments: [...prev.comments, comment] } : prev
     );
   }
 
-  // Filtered stickies
   const filtered = stickies.filter((s) => {
-    if (filterIndustry && s.industry !== filterIndustry) return false;
-    if (filterAiType && s.aiType !== filterAiType) return false;
-    if (filterRealness && s.aiRealness !== filterRealness) return false;
-    if (filterSentiment === 'optimistic' && s.sentiment < 1) return false;
-    if (filterSentiment === 'pessimistic' && s.sentiment > -1) return false;
-    if (filterSentiment === 'neutral' && s.sentiment !== 0) return false;
+    if (filterIndustry  && s.industry   !== filterIndustry)  return false;
+    if (filterAiType    && s.aiType     !== filterAiType)    return false;
+    if (filterRealness  && s.aiRealness !== filterRealness)  return false;
+    if (filterSentiment === 'optimistic'  && s.sentiment < 1)   return false;
+    if (filterSentiment === 'pessimistic' && s.sentiment > -1)  return false;
+    if (filterSentiment === 'neutral'     && s.sentiment !== 0) return false;
     if (searchText) {
       const q = searchText.toLowerCase();
-      if (
-        !s.useCase.toLowerCase().includes(q) &&
-        !s.authorName.toLowerCase().includes(q) &&
-        !s.industry.toLowerCase().includes(q) &&
-        !s.experience.toLowerCase().includes(q)
-      )
-        return false;
+      if (!s.useCase.toLowerCase().includes(q) &&
+          !s.authorName.toLowerCase().includes(q) &&
+          !s.industry.toLowerCase().includes(q) &&
+          !s.experience.toLowerCase().includes(q)) return false;
     }
     return true;
   });
 
-  // Stats
-  const totalOptimistic = stickies.filter((s) => s.sentiment > 0).length;
+  const totalOptimistic  = stickies.filter((s) => s.sentiment > 0).length;
   const totalPessimistic = stickies.filter((s) => s.sentiment < 0).length;
   const uniqueIndustries = new Set(stickies.map((s) => s.industry).filter(Boolean)).size;
   const hasFilters = filterIndustry || filterAiType || filterSentiment || filterRealness || searchText;
 
+  function clearFilters() {
+    setFilterIndustry(''); setFilterAiType('');
+    setFilterSentiment(''); setFilterRealness(''); setSearchText('');
+  }
+
+  const sel = 'text-xs border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white border-amber-200 text-stone-700';
+
   return (
-    <div className="min-h-screen flex flex-col bg-stone-900">
-      {/* Header */}
-      <header className="bg-stone-900 border-b border-stone-700 px-4 sm:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-start sm:items-center justify-between gap-3 flex-wrap">
+    <div className="wall">
+
+      {/* ── Workshop title + actions ── */}
+      <div className="px-6 sm:px-10 pt-7 pb-4 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-0.5">
+            <p className="uppercase tracking-widest font-bold mb-1"
+              style={{ fontSize: '11px', color: '#9B6535', letterSpacing: '0.12em' }}>
               AI Literacy Workshop · Phase 2
             </p>
-            <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+            <h1 className="font-extrabold leading-tight"
+              style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', color: '#3D2008', fontFamily: 'Georgia, serif' }}>
               Our AI Stories
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Live stats */}
-            <div className="hidden sm:flex items-center gap-3 text-xs text-stone-400">
-              <span>{stickies.length} {stickies.length === 1 ? 'story' : 'stories'}</span>
-              <span>·</span>
-              <span>{uniqueIndustries} industries</span>
-              {stickies.length > 0 && (
-                <>
-                  <span>·</span>
-                  <span>😊 {totalOptimistic} optimistic</span>
-                  <span>·</span>
-                  <span>😟 {totalPessimistic} pessimistic</span>
-                </>
-              )}
-            </div>
-
+          <div className="flex items-center gap-4 shrink-0">
+            {stickies.length > 0 && (
+              <div className="text-right" style={{ fontSize: '12px', color: '#9B7A50' }}>
+                <p className="font-semibold" style={{ color: '#6B4A20' }}>
+                  {stickies.length} {stickies.length === 1 ? 'story' : 'stories'}
+                  {uniqueIndustries > 0 && ` · ${uniqueIndustries} industries`}
+                </p>
+                <p>😊 {totalOptimistic} optimistic · 😟 {totalPessimistic} pessimistic</p>
+              </div>
+            )}
             <button
               onClick={() => setShowQuestionnaire(true)}
-              className="bg-amber-500 hover:bg-amber-400 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors shadow-lg"
+              className="font-bold text-white px-5 py-2.5 rounded-xl text-sm transition-all active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', boxShadow: '0 4px 12px rgba(217,119,6,0.4)' }}
             >
               📌 Share Your Story
             </button>
           </div>
         </div>
-      </header>
 
-      {/* Filter bar */}
-      <div className="bg-stone-800 border-b border-stone-700 px-4 sm:px-6 py-3">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
-          {/* Search */}
-          <input
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Search stories…"
-            className="bg-stone-700 text-white text-xs placeholder-stone-400 border border-stone-600 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400 w-36"
-          />
-
-          {/* Industry filter */}
-          <select
-            value={filterIndustry}
-            onChange={(e) => setFilterIndustry(e.target.value)}
-            className="bg-stone-700 text-white text-xs border border-stone-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-          >
+        {/* Filter bar */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl px-4 py-2.5"
+          style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(8px)', border: '1px solid rgba(155,101,53,0.18)' }}>
+          <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)}
+            placeholder="🔍 Search…"
+            className="text-xs border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white border-amber-200 text-stone-700 w-32" />
+          <select value={filterIndustry}  onChange={(e) => setFilterIndustry(e.target.value)}  className={sel}>
             <option value="">All industries</option>
-            {INDUSTRIES.map((i) => (
-              <option key={i} value={i}>{i}</option>
-            ))}
+            {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
           </select>
-
-          {/* AI type filter */}
-          <select
-            value={filterAiType}
-            onChange={(e) => setFilterAiType(e.target.value)}
-            className="bg-stone-700 text-white text-xs border border-stone-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-          >
+          <select value={filterAiType}    onChange={(e) => setFilterAiType(e.target.value)}    className={sel}>
             <option value="">All AI types</option>
-            {AI_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
+            {AI_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
-
-          {/* Sentiment filter */}
-          <select
-            value={filterSentiment}
-            onChange={(e) => setFilterSentiment(e.target.value)}
-            className="bg-stone-700 text-white text-xs border border-stone-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-          >
+          <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)} className={sel}>
             <option value="">All feelings</option>
             <option value="optimistic">😊 Optimistic</option>
             <option value="neutral">😐 Neutral</option>
             <option value="pessimistic">😟 Pessimistic</option>
           </select>
-
-          {/* Realness filter */}
-          <select
-            value={filterRealness}
-            onChange={(e) => setFilterRealness(e.target.value)}
-            className="bg-stone-700 text-white text-xs border border-stone-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-          >
+          <select value={filterRealness}  onChange={(e) => setFilterRealness(e.target.value)}  className={sel}>
             <option value="">All stages</option>
-            <option value="using">✅ Already using</option>
+            <option value="using">✅ In practice</option>
             <option value="possible">🔜 Possible soon</option>
             <option value="imagined">🌟 Future vision</option>
           </select>
-
           {hasFilters && (
-            <button
-              onClick={() => {
-                setFilterIndustry('');
-                setFilterAiType('');
-                setFilterSentiment('');
-                setFilterRealness('');
-                setSearchText('');
-              }}
-              className="text-xs text-amber-400 hover:text-amber-300 underline"
-            >
-              Clear filters
-            </button>
+            <button onClick={clearFilters} className="text-xs font-semibold underline" style={{ color: '#9B6535' }}>Clear</button>
           )}
-
-          <span className="text-xs text-stone-500 ml-auto">
-            {filtered.length} of {stickies.length} shown
+          <span className="ml-auto text-xs" style={{ color: '#9B7A50' }}>
+            {filtered.length} / {stickies.length} shown
           </span>
         </div>
       </div>
 
-      {/* Board */}
-      <main className="flex-1 corkboard p-5 sm:p-8">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-white/60">
-            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mb-4" />
-            <p className="text-sm">Loading stories…</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="bg-white/10 rounded-2xl p-8 max-w-sm">
-              {stickies.length === 0 ? (
-                <>
-                  <p className="text-4xl mb-4">📌</p>
-                  <h2 className="text-lg font-bold text-white mb-2">The board is empty!</h2>
-                  <p className="text-sm text-white/70 mb-4">
-                    Be the first to share your AI use case story.
-                  </p>
-                  <button
-                    onClick={() => setShowQuestionnaire(true)}
-                    className="bg-amber-500 hover:bg-amber-400 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
-                  >
-                    Share your story
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="text-4xl mb-4">🔍</p>
-                  <h2 className="text-lg font-bold text-white mb-2">No stories match</h2>
-                  <p className="text-sm text-white/70">Try adjusting your filters.</p>
-                </>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="sticky-columns max-w-7xl mx-auto">
-            {filtered.map((sticky) => (
-              <StickyCard
-                key={sticky.id}
-                sticky={sticky}
-                onClick={() => setSelectedSticky(sticky)}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+      {/* ── Bulletin board ── */}
+      <div className="px-6 sm:px-10 pb-10 max-w-7xl mx-auto">
+        <div className="board-frame">
+          <div
+            className="corkboard"
+            style={{ minHeight: '680px', position: 'relative', overflow: 'auto', padding: '24px' }}
+          >
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <div className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin"
+                  style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'rgba(255,255,255,0.85)' }} />
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>Loading stories…</p>
+              </div>
 
-      {/* Footer note */}
-      <div className="bg-stone-900 border-t border-stone-700 px-4 py-2 text-center">
-        <p className="text-xs text-stone-500">
-          Board refreshes automatically · Click any sticky note to read the full story and comment
-        </p>
+            ) : filtered.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center rounded-2xl px-8 py-8 max-w-xs"
+                  style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)' }}>
+                  {stickies.length === 0 ? (
+                    <>
+                      <p className="text-4xl mb-3">📌</p>
+                      <h2 className="font-bold mb-2" style={{ color: '#fff', fontSize: '16px' }}>The board is empty!</h2>
+                      <p className="mb-4" style={{ color: 'rgba(255,255,255,0.75)', fontSize: '13px' }}>Be the first to pin your AI story.</p>
+                      <button onClick={() => setShowQuestionnaire(true)}
+                        className="font-bold text-white px-5 py-2 rounded-xl text-sm"
+                        style={{ background: 'rgba(245,158,11,0.9)' }}>
+                        Share your story
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-4xl mb-3">🔍</p>
+                      <h2 className="font-bold mb-1" style={{ color: '#fff', fontSize: '16px' }}>No stories match</h2>
+                      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>Try adjusting your filters.</p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+            ) : (
+              /* Free-form pinboard — each note absolutely positioned */
+              <div style={{ position: 'relative', minHeight: '640px' }}>
+                {filtered.map((sticky) => (
+                  <div
+                    key={sticky.id}
+                    style={{
+                      position: 'absolute',
+                      left: sticky.x ?? 40,
+                      top: sticky.y ?? 40,
+                      width: `${NOTE_WIDTH}px`,
+                      zIndex: draggingId === sticky.id ? 100 : 1,
+                    }}
+                  >
+                    <StickyCard
+                      sticky={sticky}
+                      isDragging={draggingId === sticky.id}
+                      onMouseDown={(e) => startDrag(e, sticky)}
+                      onDelete={handleDelete}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Questionnaire modal */}
+      {/* ── Modals ── */}
       {showQuestionnaire && (
-        <Questionnaire
-          savedName={savedName}
-          onClose={() => setShowQuestionnaire(false)}
-          onSubmit={handleNewSticky}
-        />
+        <Questionnaire savedName={savedName} onClose={() => setShowQuestionnaire(false)} onSubmit={handleNewSticky} />
       )}
-
-      {/* Detail modal */}
       {selectedSticky && (
         <StickyDetail
           sticky={selectedSticky}
           savedName={savedName}
           onClose={() => setSelectedSticky(null)}
           onCommentAdded={handleCommentAdded}
+          onDelete={handleDelete}
         />
       )}
     </div>

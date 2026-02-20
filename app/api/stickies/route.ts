@@ -5,11 +5,11 @@ import type { Sticky } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 const SENTIMENT_COLORS: Record<string, string> = {
-  '-2': '#DBEAFE',
-  '-1': '#EDE9FE',
-  '0': '#D1FAE5',
-  '1': '#FEF9C3',
-  '2': '#FDE68A',
+  '-2': '#A8D8F0',  // sky blue  – pessimistic
+  '-1': '#C9BAED',  // lavender  – skeptical
+  '0':  '#A8EDCE',  // mint      – neutral
+  '1':  '#FFE566',  // yellow    – optimistic
+  '2':  '#FFC48C',  // peach     – very optimistic
 };
 
 export async function GET() {
@@ -26,6 +26,9 @@ export async function POST(request: Request) {
 
   const sentiment = Number(body.sentiment ?? 0);
   const rotation = parseFloat((Math.random() * 8 - 4).toFixed(2));
+  // Spread new notes across a virtual 900×600 canvas
+  const x = Math.floor(Math.random() * 680) + 20;
+  const y = Math.floor(Math.random() * 460) + 20;
 
   const newSticky: Sticky = {
     id: crypto.randomUUID(),
@@ -42,6 +45,8 @@ export async function POST(request: Request) {
     extraThoughts: (body.extraThoughts || '').trim(),
     color: SENTIMENT_COLORS[String(sentiment)] ?? '#FEF9C3',
     rotation,
+    x,
+    y,
     comments: [],
     createdAt: new Date().toISOString(),
   };
