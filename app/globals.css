@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Corkboard texture using CSS */
+.corkboard {
+  background-color: #b5834a;
+  background-image:
+    radial-gradient(ellipse at 25% 35%, rgba(196, 154, 108, 0.6) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 65%, rgba(160, 110, 60, 0.5) 0%, transparent 55%),
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
+}
+
+/* Step slide animation — triggered by key change */
+.step-enter {
+  animation: stepSlideIn 0.25s ease-out;
+}
+
+@keyframes stepSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scrollbar styling for detail modal */
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Sticky note masonry layout */
+.sticky-columns {
+  columns: 260px auto;
+  column-gap: 1.25rem;
+}
+
+.sticky-columns > * {
+  break-inside: avoid;
+  margin-bottom: 1.25rem;
+}
+
+/* Textarea resize handle styling */
+textarea {
+  resize: vertical;
+}
