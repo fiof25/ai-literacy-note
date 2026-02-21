@@ -187,30 +187,34 @@ export default function BoardPage() {
       <div className="px-6 sm:px-10 pt-7 pb-4 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <p className="uppercase tracking-widest font-bold mb-1"
-              style={{ fontSize: '11px', color: '#9B6535', letterSpacing: '0.12em' }}>
-              AI Literacy Workshop · Phase 2
-            </p>
-            <h1 className="font-extrabold leading-tight"
-              style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', color: '#3D2008', fontFamily: 'Georgia, serif' }}>
+<h1 className="font-extrabold leading-tight"
+              style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', color: '#3D2008' }}>
               Our AI Stories
             </h1>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
             {stickies.length > 0 && (
-              <div className="text-right" style={{ fontSize: '12px', color: '#9B7A50' }}>
-                <p className="font-semibold" style={{ color: '#6B4A20' }}>
+              <div className="flex items-center gap-2 flex-wrap justify-end" style={{ fontSize: '12px' }}>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold"
+                  style={{ background: 'rgba(155,101,53,0.12)', color: '#6B4A20' }}>
                   {stickies.length} {stickies.length === 1 ? 'story' : 'stories'}
                   {uniqueIndustries > 0 && ` · ${uniqueIndustries} industries`}
-                </p>
-                <p>😊 {totalOptimistic} optimistic · 😟 {totalPessimistic} pessimistic</p>
+                </span>
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full"
+                  style={{ background: 'rgba(34,197,94,0.1)', color: '#15803d', fontWeight: 600 }}>
+                  😊 {totalOptimistic}
+                </span>
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full"
+                  style={{ background: 'rgba(99,102,241,0.1)', color: '#4338ca', fontWeight: 600 }}>
+                  😟 {totalPessimistic}
+                </span>
               </div>
             )}
             <button
               onClick={() => setShowQuestionnaire(true)}
-              className="font-bold text-white px-5 py-2.5 rounded-xl text-sm transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', boxShadow: '0 4px 12px rgba(217,119,6,0.4)' }}
+              className="font-bold text-white px-5 py-3 rounded-xl text-sm transition-all active:scale-95 hover:shadow-lg"
+              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}
             >
               📌 Share Your Story
             </button>
@@ -218,11 +222,12 @@ export default function BoardPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl px-4 py-2.5"
-          style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(8px)', border: '1px solid rgba(155,101,53,0.18)' }}>
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3"
+          style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(10px)', border: '1px solid rgba(155,101,53,0.15)', boxShadow: '0 2px 8px rgba(155,101,53,0.06)' }}>
+          <span className="text-xs font-semibold mr-1 hidden sm:inline" style={{ color: '#9B6535' }}>Filter:</span>
           <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)}
-            placeholder="🔍 Search…"
-            className="text-xs border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white border-amber-200 text-stone-700 w-32" />
+            placeholder="Search…"
+            className="text-xs border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white border-amber-200 text-stone-700 w-36" />
           <select value={filterIndustry}  onChange={(e) => setFilterIndustry(e.target.value)}  className={sel}>
             <option value="">All industries</option>
             {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
@@ -244,9 +249,13 @@ export default function BoardPage() {
             <option value="imagined">🌟 Future vision</option>
           </select>
           {hasFilters && (
-            <button onClick={clearFilters} className="text-xs font-semibold underline" style={{ color: '#9B6535' }}>Clear</button>
+            <button onClick={clearFilters}
+              className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors hover:bg-amber-50"
+              style={{ color: '#9B6535', border: '1px solid rgba(155,101,53,0.25)' }}>
+              ✕ Clear
+            </button>
           )}
-          <span className="ml-auto text-xs" style={{ color: '#9B7A50' }}>
+          <span className="ml-auto text-xs font-medium" style={{ color: '#9B7A50' }}>
             {filtered.length} / {stickies.length} shown
           </span>
         </div>
@@ -269,23 +278,23 @@ export default function BoardPage() {
             ) : filtered.length === 0 ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center rounded-2xl px-8 py-8 max-w-xs"
-                  style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)' }}>
+                  style={{ background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.3)' }}>
                   {stickies.length === 0 ? (
                     <>
-                      <p className="text-4xl mb-3">📌</p>
-                      <h2 className="font-bold mb-2" style={{ color: '#fff', fontSize: '16px' }}>The board is empty!</h2>
-                      <p className="mb-4" style={{ color: 'rgba(255,255,255,0.75)', fontSize: '13px' }}>Be the first to pin your AI story.</p>
+                      <p className="text-5xl mb-3">📌</p>
+                      <h2 className="font-bold mb-2" style={{ color: '#fff', fontSize: '17px' }}>The board is empty!</h2>
+                      <p className="mb-5" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>Be the first to pin your AI story — it only takes a minute.</p>
                       <button onClick={() => setShowQuestionnaire(true)}
-                        className="font-bold text-white px-5 py-2 rounded-xl text-sm"
-                        style={{ background: 'rgba(245,158,11,0.9)' }}>
+                        className="font-bold text-white px-5 py-2.5 rounded-xl text-sm transition-all hover:scale-105 active:scale-95"
+                        style={{ background: 'rgba(245,158,11,0.95)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
                         Share your story
                       </button>
                     </>
                   ) : (
                     <>
-                      <p className="text-4xl mb-3">🔍</p>
-                      <h2 className="font-bold mb-1" style={{ color: '#fff', fontSize: '16px' }}>No stories match</h2>
-                      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>Try adjusting your filters.</p>
+                      <p className="text-5xl mb-3">🔍</p>
+                      <h2 className="font-bold mb-1" style={{ color: '#fff', fontSize: '17px' }}>No stories match</h2>
+                      <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '13px' }}>Try adjusting your filters.</p>
                     </>
                   )}
                 </div>

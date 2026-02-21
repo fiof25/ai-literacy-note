@@ -5,28 +5,31 @@
 /* ── Page wall background ── */
 .wall {
   min-height: 100vh;
-  background-color: #F5ECD7;
+  background-color: #FDF0F3;
   background-image:
+    /* Subtle top-to-bottom warmth */
+    linear-gradient(to bottom, rgba(255,245,248,0.6) 0%, transparent 320px),
+    /* Vertical grain lines */
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 70px,
-      rgba(180, 140, 90, 0.045) 70px,
-      rgba(180, 140, 90, 0.045) 71px
+      rgba(200, 140, 155, 0.035) 70px,
+      rgba(200, 140, 155, 0.035) 71px
     );
 }
 
 /* ── Wooden frame around the board ── */
 .board-frame {
-  border-radius: 4px;
+  border-radius: 6px;
   /* Layered border trick: outer edge dark, inner lighter for wood grain look */
   box-shadow:
-    0 0 0 22px #9B6535,
-    0 0 0 24px #7A4A20,
-    0 0 0 25px rgba(0, 0, 0, 0.25),
-    10px 14px 40px rgba(0, 0, 0, 0.4),
-    4px 6px 12px rgba(0, 0, 0, 0.2);
-  margin: 0 22px;
+    0 0 0 20px #A06A38,
+    0 0 0 22px #7A4A20,
+    0 0 0 23px rgba(0, 0, 0,0.2),
+    8px 12px 36px rgba(0, 0, 0, 0.32),
+    3px 5px 10px rgba(0, 0, 0, 0.15);
+  margin: 0 20px;
 }
 
 /* ── Cork board surface ── */

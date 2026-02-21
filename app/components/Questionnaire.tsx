@@ -134,21 +134,31 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Progress bar */}
-        <div className="w-full h-1 bg-gray-100">
+        <div className="w-full h-1.5 bg-gray-100">
           <div
-            className="h-full bg-amber-500 transition-all duration-300"
-            style={{ width: `${((step + 1) / (totalSteps + 1)) * 100}%` }}
+            className="h-full bg-amber-500 transition-all duration-400"
+            style={{ width: `${((step + 1) / (totalSteps + 1)) * 100}%`, borderRadius: '0 4px 4px 0' }}
           />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Step {step + 1} of {totalSteps}
-          </p>
+        <div className="flex items-center justify-between px-6 pt-4 pb-2">
+          {/* Step dots */}
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <div key={i} style={{
+                width: i === step ? '18px' : '7px',
+                height: '7px',
+                borderRadius: '4px',
+                background: i < step ? '#f59e0b' : i === step ? '#d97706' : '#e5e7eb',
+                transition: 'all 0.25s ease',
+              }} />
+            ))}
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none"
+            className="flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            style={{ width: '28px', height: '28px', fontSize: '18px', fontWeight: 700 }}
             aria-label="Close"
           >
             ×
@@ -429,7 +439,7 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
           {step > 0 && (
             <button
               onClick={back}
-              className="flex-1 border border-gray-200 text-gray-700 font-semibold rounded-xl py-3 hover:bg-gray-50 transition-colors text-sm"
+              className="border border-gray-200 text-gray-600 font-semibold rounded-xl py-3 px-5 hover:bg-gray-50 transition-colors text-sm"
             >
               ← Back
             </button>
@@ -438,7 +448,7 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
             <button
               onClick={next}
               disabled={!canAdvance()}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold rounded-xl py-3 transition-colors text-sm"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold rounded-xl py-3 transition-all active:scale-95 text-sm"
             >
               Continue →
             </button>
@@ -446,7 +456,7 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl py-3 transition-colors text-sm"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl py-3 transition-all active:scale-95 text-sm"
             >
               {submitting ? 'Posting…' : '📌 Pin to Board'}
             </button>

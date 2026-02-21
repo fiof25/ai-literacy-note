@@ -116,7 +116,8 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-800 text-xl font-bold leading-none mt-0.5 shrink-0"
+              className="flex items-center justify-center shrink-0 rounded-full transition-colors hover:bg-black/10"
+              style={{ width: '28px', height: '28px', color: 'rgba(0,0,0,0.45)', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}
               aria-label="Close"
             >
               ×
@@ -143,8 +144,8 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
         <div className="flex-1 overflow-y-auto custom-scroll px-6 py-5 space-y-5">
           {/* Story */}
           {sticky.experience && (
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+            <div className="pl-3" style={{ borderLeft: '3px solid rgba(245,158,11,0.45)' }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
                 The story behind it
               </h3>
               <p className="text-sm text-gray-700 leading-relaxed">{sticky.experience}</p>
@@ -153,8 +154,8 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
 
           {/* Pain points */}
           {sticky.painPoints && (
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+            <div className="pl-3" style={{ borderLeft: '3px solid rgba(245,158,11,0.45)' }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
                 Pain points AI could help with
               </h3>
               <p className="text-sm text-gray-700 leading-relaxed">{sticky.painPoints}</p>
@@ -163,8 +164,8 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
 
           {/* Extra thoughts */}
           {sticky.extraThoughts && (
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+            <div className="pl-3" style={{ borderLeft: '3px solid rgba(245,158,11,0.45)' }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
                 Extra thoughts
               </h3>
               <p className="text-sm text-gray-700 leading-relaxed">{sticky.extraThoughts}</p>
@@ -202,20 +203,20 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
           {/* Comments */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-              Comments ({sticky.comments.length})
+              💬 Comments ({sticky.comments.length})
             </h3>
 
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2.5 mb-4">
               {sticky.comments.length === 0 && (
-                <p className="text-sm text-gray-400 italic">No comments yet. Be the first!</p>
+                <p className="text-sm text-gray-400 italic py-2">No comments yet — be the first to react!</p>
               )}
               {sticky.comments.map((c) => (
-                <div key={c.id} className="bg-gray-50 rounded-lg px-3 py-2.5">
+                <div key={c.id} className="rounded-xl px-3.5 py-2.5" style={{ background: '#f8f7f4', border: '1px solid rgba(0,0,0,0.05)' }}>
                   <div className="flex items-baseline justify-between mb-1">
                     <span className="text-xs font-semibold text-gray-700">{c.author}</span>
                     <span className="text-xs text-gray-400">{timeAgo(c.createdAt)}</span>
                   </div>
-                  <p className="text-sm text-gray-700">{c.text}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{c.text}</p>
                 </div>
               ))}
             </div>
@@ -227,22 +228,22 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
                 value={commentAuthor}
                 onChange={(e) => setCommentAuthor(e.target.value)}
                 placeholder="Your name (optional)"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full text-sm border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Leave a comment..."
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="Share your reaction…"
+                  className="flex-1 text-sm border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />
                 <button
                   type="submit"
                   disabled={submitting || !commentText.trim()}
-                  className="text-sm font-semibold bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="text-sm font-semibold bg-amber-500 hover:bg-amber-600 disabled:bg-gray-100 disabled:text-gray-400 text-white px-4 py-2 rounded-xl transition-colors"
                 >
-                  {submitting ? '...' : 'Post'}
+                  {submitting ? '…' : 'Post'}
                 </button>
               </div>
               {error && <p className="text-xs text-red-500">{error}</p>}

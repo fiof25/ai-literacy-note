@@ -68,13 +68,14 @@ export default function StickyCard({ sticky, isDragging, onMouseDown, onDelete }
         backgroundColor: sticky.color,
         transform: `rotate(${isLifted ? 0 : sticky.rotation}deg) scale(${isLifted ? 1.05 : 1})`,
         boxShadow: isDragging
-          ? '8px 12px 32px rgba(0,0,0,0.38), 2px 4px 8px rgba(0,0,0,0.18)'
+          ? '10px 16px 36px rgba(0,0,0,0.38), 2px 4px 8px rgba(0,0,0,0.18)'
           : hovered
-          ? '4px 8px 20px rgba(0,0,0,0.26), 2px 3px 6px rgba(0,0,0,0.12)'
-          : '3px 5px 10px rgba(0,0,0,0.2), 1px 2px 4px rgba(0,0,0,0.08)',
-        transition: isDragging ? 'none' : 'transform 0.18s ease, box-shadow 0.18s ease',
+          ? '5px 10px 24px rgba(0,0,0,0.24), 2px 3px 6px rgba(0,0,0,0.1)'
+          : '3px 5px 12px rgba(0,0,0,0.18), 1px 2px 4px rgba(0,0,0,0.07)',
+        transition: isDragging ? 'none' : 'transform 0.2s ease, box-shadow 0.2s ease',
         cursor: isDragging ? 'grabbing' : 'grab',
-        padding: '18px 14px 14px',
+        padding: '20px 16px 14px',
+        borderRadius: '2px',
       }}
     >
       {/* Pushpin — inset box-shadow for highlight, no color-mix */}
@@ -126,7 +127,7 @@ export default function StickyCard({ sticky, isDragging, onMouseDown, onDelete }
       {/* Headline */}
       <p
         className="font-bold leading-snug line-clamp-4 mb-3"
-        style={{ fontSize: '13px', color: '#1a1a1a', fontFamily: 'Georgia, serif' }}
+        style={{ fontSize: '13.5px', color: '#1a1a1a', lineHeight: 1.45 }}
       >
         &ldquo;I want AI to {sticky.useCase}&rdquo;
       </p>
@@ -148,17 +149,17 @@ export default function StickyCard({ sticky, isDragging, onMouseDown, onDelete }
         )}
       </div>
 
-      <div style={{ borderTop: '1px solid rgba(0,0,0,0.1)', marginBottom: '8px' }} />
+      <div style={{ borderTop: '1px solid rgba(0,0,0,0.09)', marginBottom: '9px' }} />
 
       <div className="flex items-center justify-between">
-        <span style={{ fontSize: '11px', color: '#444', fontWeight: 600 }} className="truncate max-w-[70%]">
+        <span style={{ fontSize: '11px', color: '#3a3a3a', fontWeight: 600 }} className="truncate max-w-[72%]">
           {SENTIMENT_LABELS[String(sticky.sentiment)]} {sticky.authorName}
           {sticky.profession ? `, ${sticky.profession}` : ''}
         </span>
-        <span style={{ fontSize: '10px', color: '#666' }} className="flex items-center gap-1 shrink-0 ml-2">
+        <span style={{ fontSize: '10px', color: '#5a5a5a' }} className="flex items-center gap-1 shrink-0 ml-2">
           <span>💬</span>
           <span>{sticky.comments.length}</span>
-          <span className="hidden sm:inline opacity-60 ml-0.5">· {timeAgo(sticky.createdAt)}</span>
+          <span className="opacity-55 ml-0.5">· {timeAgo(sticky.createdAt)}</span>
         </span>
       </div>
     </div>
