@@ -151,7 +151,7 @@ function WildTree({ s, pal, id }: { s: number; pal: Pal; id: string }) {
       <mesh position={[0.5, 1.22, 0.2]} rotation={[-0.06, 0.28, -0.5]} scale={[0.18, 0.72, 0.3]}>
         <sphereGeometry args={[1, 8, 6]} /><meshLambertMaterial color="#5CAB2A" />
       </mesh>
-      {/* 6 petals — elongated spheres, fanned outward */}
+      {/* 6 petals — elongated spheres, fanned outward, all pink */}
       {[0, 60, 120, 180, 240, 300].map((deg, i) => {
         const rad = (deg * Math.PI) / 180;
         const tilt = 0.3 + r(i + 20) * 0.2;
@@ -163,13 +163,13 @@ function WildTree({ s, pal, id }: { s: number; pal: Pal; id: string }) {
             scale={[0.26, 0.78, 0.32]}
           >
             <sphereGeometry args={[1, 8, 8]} />
-            <meshLambertMaterial color={i % 2 === 0 ? pal.dark : pal.mid} />
+            <meshLambertMaterial color="#F472B6" />
           </mesh>
         );
       })}
       {/* Flower center */}
       <mesh position={[0, 3.52, 0]}>
-        <sphereGeometry args={[0.24, 10, 10]} /><meshLambertMaterial color={pal.light} />
+        <sphereGeometry args={[0.24, 10, 10]} /><meshLambertMaterial color="#FDF2F8" />
       </mesh>
       {/* Gold stamen dot */}
       <mesh position={[0, 3.72, 0]}>
@@ -241,8 +241,8 @@ function GrassBatch({ seed, color, count, scaleMin, scaleMax }: {
   const d = useRef(new THREE.Object3D());
   const blades = useMemo(() =>
     Array.from({ length: count }, (_, i) => ({
-      x:     (stableHash(`${seed}x${i}`, seed)     - 0.5) * 78,
-      z:     (stableHash(`${seed}z${i}`, seed + 1) - 0.5) * 56,
+      x:     (stableHash(`${seed}x${i}`, seed)     - 0.5) * 80,
+      z:     (stableHash(`${seed}z${i}`, seed + 1) - 0.5) * 60,
       ry:     stableHash(`${seed}r${i}`, seed + 2)  * Math.PI * 2,
       lean:  (stableHash(`${seed}l${i}`, seed + 3) - 0.5) * 0.44,
       h:      scaleMin + stableHash(`${seed}h${i}`, seed + 4) * (scaleMax - scaleMin),
@@ -276,84 +276,21 @@ function GrassBatch({ seed, color, count, scaleMin, scaleMax }: {
   );
 }
 
-function FlowerBatch({ seed, color, count }: { seed: number; color: string; count: number }) {
-  const stemRef  = useRef<THREE.InstancedMesh>(null);
-  const bloomRef = useRef<THREE.InstancedMesh>(null);
-  const ready = useRef(false);
-  const flowers = useMemo(() =>
-    Array.from({ length: count }, (_, i) => ({
-      x:    (stableHash(`${seed}fx${i}`, seed + 20) - 0.5) * 70,
-      z:    (stableHash(`${seed}fz${i}`, seed + 21) - 0.5) * 50,
-      stemH: 0.18 + stableHash(`${seed}fh${i}`, seed + 22) * 0.28,
-      size:  0.07 + stableHash(`${seed}fs${i}`, seed + 23) * 0.11,
-    })), []
-  );
-
-  // One-time setup inside useFrame so ref is guaranteed to be set
-  useFrame(() => {
-    if (ready.current) return;
-    const stemMesh  = stemRef.current;
-    const bloomMesh = bloomRef.current;
-    if (!stemMesh || !bloomMesh) return;
-    const obj = new THREE.Object3D();
-    for (let i = 0; i < flowers.length; i++) {
-      const f = flowers[i];
-      obj.position.set(f.x, f.stemH * 0.5, f.z);
-      obj.rotation.set(0, 0, 0);
-      obj.scale.set(1, f.stemH, 1);
-      obj.updateMatrix();
-      stemMesh.setMatrixAt(i, obj.matrix);
-      obj.position.set(f.x, f.stemH + f.size * 0.7, f.z);
-      obj.scale.setScalar(f.size);
-      obj.updateMatrix();
-      bloomMesh.setMatrixAt(i, obj.matrix);
-    }
-    stemMesh.instanceMatrix.needsUpdate = true;
-    bloomMesh.instanceMatrix.needsUpdate = true;
-    ready.current = true;
-  });
-
-  return (
-    <>
-      <instancedMesh ref={stemRef} args={[undefined, undefined, count]} frustumCulled={false}>
-        <cylinderGeometry args={[0.013, 0.013, 1, 4]} />
-        <meshLambertMaterial color="#4A8C30" />
-      </instancedMesh>
-      <instancedMesh ref={bloomRef} args={[undefined, undefined, count]} frustumCulled={false}>
-        <sphereGeometry args={[1, 8, 8]} />
-        <meshLambertMaterial color={color} />
-      </instancedMesh>
-    </>
-  );
-}
 
 function Landscape() {
   return (
     <>
-      {/* Rich dark base ground */}
+      {/* Single seamless ground plane */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
         <planeGeometry args={[220, 160]} />
-        <meshLambertMaterial color="#3A7A26" />
-      </mesh>
-      {/* Brighter mid-ground where the trees stand */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.07, 0]}>
-        <planeGeometry args={[80, 58]} />
-        <meshLambertMaterial color="#52A33A" />
+        <meshLambertMaterial color="#4A9C38" />
       </mesh>
 
-      {/* 4 shades of animated grass */}
-      <GrassBatch seed={10} color="#2A7A18" count={380} scaleMin={0.12} scaleMax={0.26} />
-      <GrassBatch seed={20} color="#4A9C38" count={420} scaleMin={0.16} scaleMax={0.38} />
-      <GrassBatch seed={30} color="#5BAA42" count={400} scaleMin={0.14} scaleMax={0.32} />
-      <GrassBatch seed={40} color="#7CC862" count={360} scaleMin={0.10} scaleMax={0.22} />
-
-      {/* Wildflowers — 6 bloom colors */}
-      <FlowerBatch seed={100} color="#F9A8D4" count={80} />
-      <FlowerBatch seed={200} color="#FDE68A" count={75} />
-      <FlowerBatch seed={300} color="#C4B5FD" count={70} />
-      <FlowerBatch seed={400} color="#FBCFE8" count={65} />
-      <FlowerBatch seed={500} color="#A7F3D0" count={55} />
-      <FlowerBatch seed={600} color="#FAFAFA" count={55} />
+      {/* 4 shades of animated grass — spread across full ground plane */}
+      <GrassBatch seed={10} color="#2A7A18" count={300} scaleMin={0.12} scaleMax={0.26} />
+      <GrassBatch seed={20} color="#4A9C38" count={320} scaleMin={0.16} scaleMax={0.38} />
+      <GrassBatch seed={30} color="#5BAA42" count={300} scaleMin={0.14} scaleMax={0.32} />
+      <GrassBatch seed={40} color="#7CC862" count={280} scaleMin={0.10} scaleMax={0.22} />
 
       {/* Distant rolling hills */}
       <mesh position={[-24, -5.5, -25]}><sphereGeometry args={[15, 20, 20]} /><meshLambertMaterial color="#4A9C38" /></mesh>
@@ -392,13 +329,21 @@ export default function ForestScene3D({ stickies, sliderIdx, onSelect }: ForestS
 
   return (
     <Canvas camera={{ position: [0, 11, 26], fov: 52 }} style={{ width: '100%', height: '100%', display: 'block' }}>
-      <color attach="background" args={['#B8DFF0']} />
-      <fog attach="fog" args={['#C5E8F5', 42, 82]} />
+      {/* Soft lavender sky — dreamy, not harsh blue */}
+      <color attach="background" args={['#EDE0FF']} />
+      {/* Fog matches sky so distant hills dissolve magically */}
+      <fog attach="fog" args={['#EDE0FF', 34, 72]} />
 
-      <ambientLight intensity={1.6} />
-      <directionalLight position={[12, 22, 8]}  intensity={1.8} color="#FFF5E0" />
-      <directionalLight position={[-8, 10, -5]} intensity={0.7} color="#B8E4F8" />
-      <hemisphereLight args={['#C8E8F8', '#5A9E3C', 0.8]} />
+      {/* Very high ambient — fills shadows softly, everything glows */}
+      <ambientLight intensity={2.4} color="#FFF8F4" />
+      {/* Warm golden sun from upper right — golden hour warmth */}
+      <directionalLight position={[14, 24, 10]} intensity={1.3} color="#FFD98A" />
+      {/* Soft pink/lavender fill from left — magical accent */}
+      <directionalLight position={[-10, 12, -4]} intensity={0.9} color="#E8C4FF" />
+      {/* Subtle purple backlight for depth */}
+      <directionalLight position={[0, 5, -22]} intensity={0.45} color="#BBA8FF" />
+      {/* Hemisphere: warm golden sky → lush green ground */}
+      <hemisphereLight args={['#FFE8C8', '#8ED870', 1.2]} />
 
       <Landscape />
 

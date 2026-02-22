@@ -39,18 +39,15 @@ interface Props {
 }
 
 export default function ForestView({ stickies, savedName, onCommentAdded, onDelete, onBack, onShareStory }: Props) {
-  const [sliderIdx, setSliderIdx] = useState(stickies.length);
   const [selected, setSelected] = useState<Sticky | null>(null);
   const [showLegend, setShowLegend] = useState(false);
 
   const maxIdx = stickies.length;
-  const cappedIdx = Math.min(sliderIdx, maxIdx);
 
-  const sorted = useMemo(
+  const visible = useMemo(
     () => [...stickies].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
     [stickies]
   );
-  const visible = useMemo(() => sorted.slice(0, cappedIdx), [sorted, cappedIdx]);
 
   const glass: React.CSSProperties = {
     background: 'rgba(255,255,255,0.82)',
@@ -67,7 +64,7 @@ export default function ForestView({ stickies, savedName, onCommentAdded, onDele
 
       {/* ── 3D canvas: fills entire screen ── */}
       <div style={{ position: 'absolute', inset: 0 }}>
-        <ForestScene3D stickies={visible} sliderIdx={cappedIdx} onSelect={setSelected} />
+        <ForestScene3D stickies={visible} sliderIdx={maxIdx} onSelect={setSelected} />
       </div>
 
       {/* ── Top bar ── */}
@@ -111,33 +108,6 @@ export default function ForestView({ stickies, savedName, onCommentAdded, onDele
         >
           + Share Story
         </button>
-      </div>
-
-      {/* ── Bottom slider (centered) ── */}
-      <div style={{
-        position: 'absolute', bottom: 24,
-        left: '50%', transform: 'translateX(-50%)',
-        width: 'min(540px, calc(100% - 260px))',
-        zIndex: 10,
-        ...glass,
-        padding: '16px 22px',
-        borderRadius: '18px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#6B4A20' }}>Forest timeline</span>
-          <span style={{ fontSize: '12px', color: '#9B7A50' }}>
-            {cappedIdx === 0 ? 'Drag to grow the forest' : `${cappedIdx} / ${maxIdx} stories growing`}
-          </span>
-        </div>
-        <input
-          type="range" min={0} max={maxIdx} value={cappedIdx}
-          onChange={(e) => setSliderIdx(Number(e.target.value))}
-          style={{ width: '100%', accentColor: '#F59E0B', cursor: 'pointer', height: '4px' }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#B89060', marginTop: 7 }}>
-          <span>Seed</span>
-          <span>Full forest</span>
-        </div>
       </div>
 
       {/* ── Legend (bottom-left) ── */}
