@@ -4,25 +4,25 @@ import { useState } from 'react';
 import type { Sticky, Comment } from '@/lib/types';
 
 const AI_TYPE_LABELS: Record<string, string> = {
-  generative: '🎨 Generative / Creative',
-  predictive: '📊 Predictive / Analytical',
-  automation: '⚙️ Automation',
-  conversational: '💬 Conversational',
-  unsure: '🤷 Not sure / Multiple',
+  generative: 'Generative / Creative',
+  predictive: 'Predictive / Analytical',
+  automation: 'Automation',
+  conversational: 'Conversational',
+  unsure: 'Not sure / Multiple',
 };
 
 const REALNESS_LABELS: Record<string, string> = {
-  using: '✅ Already using this',
-  possible: '🔜 Possible in the near future',
-  imagined: '🌟 Future vision',
+  using: 'Already using this',
+  possible: 'Possible in the near future',
+  imagined: 'Future vision',
 };
 
 const SENTIMENT_MAP: Record<number, { emoji: string; label: string }> = {
-  '-2': { emoji: '😟', label: 'Very pessimistic' },
-  '-1': { emoji: '😕', label: 'Pessimistic' },
-  '0': { emoji: '😐', label: 'Neutral' },
-  '1': { emoji: '🙂', label: 'Optimistic' },
-  '2': { emoji: '😊', label: 'Very optimistic' },
+  '-2': { emoji: '−−', label: 'Very pessimistic' },
+  '-1': { emoji: '−', label: 'Pessimistic' },
+  '0': { emoji: '○', label: 'Neutral' },
+  '1': { emoji: '+', label: 'Optimistic' },
+  '2': { emoji: '++', label: 'Very optimistic' },
 };
 
 function timeAgo(iso: string) {
@@ -203,7 +203,7 @@ export default function StickyDetail({ sticky, savedName, onClose, onCommentAdde
           {/* Comments */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-              💬 Comments ({sticky.comments.length})
+              Comments ({sticky.comments.length})
             </h3>
 
             <div className="space-y-2.5 mb-4">

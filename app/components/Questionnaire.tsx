@@ -11,25 +11,25 @@ const INDUSTRIES = [
 ];
 
 const AI_TYPES = [
-  { value: 'generative', emoji: '🎨', label: 'Generative / Creative', desc: 'Text, images, video, audio' },
-  { value: 'predictive', emoji: '📊', label: 'Predictive / Analytical', desc: 'Data analysis, forecasting' },
-  { value: 'automation', emoji: '⚙️', label: 'Automation', desc: 'Workflows, process automation' },
-  { value: 'conversational', emoji: '💬', label: 'Conversational', desc: 'Chatbots, voice assistants' },
-  { value: 'unsure', emoji: '🤷', label: 'Not sure / Multiple', desc: 'A combination or unclear' },
+  { value: 'generative',    label: 'Generative / Creative',   desc: 'Text, images, video, audio' },
+  { value: 'predictive',    label: 'Predictive / Analytical', desc: 'Data analysis, forecasting' },
+  { value: 'automation',    label: 'Automation',              desc: 'Workflows, process automation' },
+  { value: 'conversational',label: 'Conversational',          desc: 'Chatbots, voice assistants' },
+  { value: 'unsure',        label: 'Not sure / Multiple',     desc: 'A combination or unclear' },
 ];
 
 const REALNESS = [
-  { value: 'using', emoji: '✅', label: 'Already using this' },
-  { value: 'possible', emoji: '🔜', label: 'Possible in the near future' },
-  { value: 'imagined', emoji: '🌟', label: 'Future vision / Imagined' },
+  { value: 'using',    label: 'Already using this' },
+  { value: 'possible', label: 'Possible in the near future' },
+  { value: 'imagined', label: 'Future vision / Imagined' },
 ];
 
 const SENTIMENT = [
-  { value: -2, emoji: '😟', label: 'Very pessimistic' },
-  { value: -1, emoji: '😕', label: 'Pessimistic' },
-  { value: 0, emoji: '😐', label: 'Neutral' },
-  { value: 1, emoji: '🙂', label: 'Optimistic' },
-  { value: 2, emoji: '😊', label: 'Very optimistic' },
+  { value: -2, symbol: '−−', label: 'Very pessimistic' },
+  { value: -1, symbol: '−',  label: 'Pessimistic' },
+  { value:  0, symbol: '○',  label: 'Neutral' },
+  { value:  1, symbol: '+',  label: 'Optimistic' },
+  { value:  2, symbol: '++', label: 'Very optimistic' },
 ];
 
 const SENTIMENT_COLORS: Record<number, string> = {
@@ -287,7 +287,6 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <span className="text-xl">{t.emoji}</span>
                       <div>
                         <p className="text-sm font-semibold text-gray-800">{t.label}</p>
                         <p className="text-xs text-gray-500">{t.desc}</p>
@@ -312,7 +311,6 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <span className="text-lg">{r.emoji}</span>
                       <span className="text-sm font-medium text-gray-800">{r.label}</span>
                     </button>
                   ))}
@@ -338,13 +336,13 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
                       type="button"
                       onClick={() => update('sentiment', s.value)}
                       title={s.label}
-                      className={`flex-1 flex flex-col items-center py-2.5 rounded-xl border transition-all text-2xl ${
+                      className={`flex-1 flex flex-col items-center py-2.5 rounded-xl border transition-all ${
                         form.sentiment === s.value
                           ? 'border-amber-500 bg-amber-50 scale-110'
                           : 'border-gray-200 hover:border-gray-300 hover:scale-105'
                       }`}
                     >
-                      {s.emoji}
+                      <span className="text-base font-bold text-gray-700">{s.symbol}</span>
                       <span className="text-xs text-gray-500 mt-1 leading-tight text-center hidden sm:block">
                         {s.label.split(' ')[s.label.split(' ').length - 1]}
                       </span>
@@ -412,19 +410,17 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
                   )}
                   {form.aiType && (
                     <span className="text-xs bg-white/60 text-gray-700 px-2 py-0.5 rounded-full font-medium">
-                      {AI_TYPES.find((t) => t.value === form.aiType)?.emoji}{' '}
                       {AI_TYPES.find((t) => t.value === form.aiType)?.label}
                     </span>
                   )}
                   {form.aiRealness && (
                     <span className="text-xs bg-white/60 text-gray-700 px-2 py-0.5 rounded-full font-medium">
-                      {REALNESS.find((r) => r.value === form.aiRealness)?.emoji}{' '}
                       {REALNESS.find((r) => r.value === form.aiRealness)?.label}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-gray-600">
-                  {SENTIMENT.find((s) => s.value === form.sentiment)?.emoji} {form.authorName}
+                  {SENTIMENT.find((s) => s.value === form.sentiment)?.symbol} {form.authorName}
                   {form.profession && `, ${form.profession}`}
                 </p>
               </div>
@@ -458,7 +454,7 @@ export default function Questionnaire({ savedName, onClose, onSubmit }: Props) {
               disabled={submitting}
               className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl py-3 transition-all active:scale-95 text-sm"
             >
-              {submitting ? 'Posting…' : '📌 Pin to Board'}
+              {submitting ? 'Posting…' : 'Pin to Board'}
             </button>
           )}
         </div>

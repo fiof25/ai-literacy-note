@@ -5,6 +5,7 @@ import type { Sticky, Comment } from '@/lib/types';
 import StickyCard from './components/StickyCard';
 import StickyDetail from './components/StickyDetail';
 import Questionnaire from './components/Questionnaire';
+import ForestView from './components/ForestView';
 
 const INDUSTRIES = [
   'Education', 'Healthcare', 'Technology', 'Journalism / Media',
@@ -14,11 +15,11 @@ const INDUSTRIES = [
 ];
 
 const AI_TYPES = [
-  { value: 'generative',     label: '🎨 Generative' },
-  { value: 'predictive',     label: '📊 Predictive' },
-  { value: 'automation',     label: '⚙️ Automation' },
-  { value: 'conversational', label: '💬 Conversational' },
-  { value: 'unsure',         label: '🤷 Not sure' },
+  { value: 'generative',     label: 'Generative' },
+  { value: 'predictive',     label: 'Predictive' },
+  { value: 'automation',     label: 'Automation' },
+  { value: 'conversational', label: 'Conversational' },
+  { value: 'unsure',         label: 'Not sure' },
 ];
 
 const NOTE_WIDTH = 220;
@@ -30,6 +31,7 @@ export default function BoardPage() {
   const [selectedSticky, setSelectedSticky]       = useState<Sticky | null>(null);
   const [savedName, setSavedName]                 = useState('');
   const [draggingId, setDraggingId]               = useState<string | null>(null);
+  const [viewMode, setViewMode]                   = useState<'board' | 'forest'>('board');
 
   // Filters
   const [filterIndustry, setFilterIndustry]   = useState('');
@@ -181,6 +183,7 @@ export default function BoardPage() {
   const sel = 'text-xs border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white border-amber-200 text-stone-700';
 
   return (
+    <>
     <div className="wall">
 
       {/* ── Workshop title + actions ── */}
@@ -203,20 +206,44 @@ export default function BoardPage() {
                 </span>
                 <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full"
                   style={{ background: 'rgba(34,197,94,0.1)', color: '#15803d', fontWeight: 600 }}>
-                  😊 {totalOptimistic}
+                  ↑ {totalOptimistic}
                 </span>
                 <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full"
                   style={{ background: 'rgba(99,102,241,0.1)', color: '#4338ca', fontWeight: 600 }}>
-                  😟 {totalPessimistic}
+                  ↓ {totalPessimistic}
                 </span>
               </div>
             )}
+            {/* View mode toggle */}
+            <div className="flex rounded-xl overflow-hidden border text-xs font-semibold" style={{ borderColor: 'rgba(155,101,53,0.25)' }}>
+              <button
+                onClick={() => setViewMode('board')}
+                className="px-4 py-2.5 transition-colors"
+                style={{
+                  background: viewMode === 'board' ? 'rgba(155,101,53,0.15)' : 'white',
+                  color: viewMode === 'board' ? '#6B4A20' : '#9B7A50',
+                }}
+              >
+                Board
+              </button>
+              <button
+                onClick={() => setViewMode('forest')}
+                className="px-4 py-2.5 transition-colors"
+                style={{
+                  background: viewMode === 'forest' ? 'rgba(155,101,53,0.15)' : 'white',
+                  color: viewMode === 'forest' ? '#6B4A20' : '#9B7A50',
+                  borderLeft: '1px solid rgba(155,101,53,0.25)',
+                }}
+              >
+                Forest
+              </button>
+            </div>
             <button
               onClick={() => setShowQuestionnaire(true)}
               className="font-bold text-white px-5 py-3 rounded-xl text-sm transition-all active:scale-95 hover:shadow-lg"
               style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}
             >
-              📌 Share Your Story
+              + Share Your Story
             </button>
           </div>
         </div>
@@ -238,15 +265,15 @@ export default function BoardPage() {
           </select>
           <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)} className={sel}>
             <option value="">All feelings</option>
-            <option value="optimistic">😊 Optimistic</option>
-            <option value="neutral">😐 Neutral</option>
-            <option value="pessimistic">😟 Pessimistic</option>
+            <option value="optimistic">Optimistic</option>
+            <option value="neutral">Neutral</option>
+            <option value="pessimistic">Pessimistic</option>
           </select>
           <select value={filterRealness}  onChange={(e) => setFilterRealness(e.target.value)}  className={sel}>
             <option value="">All stages</option>
-            <option value="using">✅ In practice</option>
-            <option value="possible">🔜 Possible soon</option>
-            <option value="imagined">🌟 Future vision</option>
+            <option value="using">In practice</option>
+            <option value="possible">Possible soon</option>
+            <option value="imagined">Future vision</option>
           </select>
           {hasFilters && (
             <button onClick={clearFilters}
@@ -261,7 +288,7 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* ── Bulletin board ── */}
+      {/* ── Bulletin board (always rendered) ── */}
       <div className="px-6 sm:px-10 pb-10 max-w-7xl mx-auto">
         <div className="board-frame">
           <div
@@ -281,7 +308,7 @@ export default function BoardPage() {
                   style={{ background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.3)' }}>
                   {stickies.length === 0 ? (
                     <>
-                      <p className="text-5xl mb-3">📌</p>
+                      <p className="text-5xl mb-3">·</p>
                       <h2 className="font-bold mb-2" style={{ color: '#fff', fontSize: '17px' }}>The board is empty!</h2>
                       <p className="mb-5" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>Be the first to pin your AI story — it only takes a minute.</p>
                       <button onClick={() => setShowQuestionnaire(true)}
@@ -292,7 +319,7 @@ export default function BoardPage() {
                     </>
                   ) : (
                     <>
-                      <p className="text-5xl mb-3">🔍</p>
+                      <p className="text-5xl mb-3">○</p>
                       <h2 className="font-bold mb-1" style={{ color: '#fff', fontSize: '17px' }}>No stories match</h2>
                       <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '13px' }}>Try adjusting your filters.</p>
                     </>
@@ -301,7 +328,6 @@ export default function BoardPage() {
               </div>
 
             ) : (
-              /* Free-form pinboard — each note absolutely positioned */
               <div style={{ position: 'relative', minHeight: '640px' }}>
                 {filtered.map((sticky) => (
                   <div
@@ -328,7 +354,7 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* ── Modals ── */}
+      {/* ── Board modals ── */}
       {showQuestionnaire && (
         <Questionnaire savedName={savedName} onClose={() => setShowQuestionnaire(false)} onSubmit={handleNewSticky} />
       )}
@@ -342,5 +368,18 @@ export default function BoardPage() {
         />
       )}
     </div>
+
+    {/* ── Forest mode: full-screen overlay ── */}
+    {viewMode === 'forest' && (
+      <ForestView
+        stickies={filtered}
+        savedName={savedName}
+        onCommentAdded={handleCommentAdded}
+        onDelete={handleDelete}
+        onBack={() => setViewMode('board')}
+        onShareStory={() => setShowQuestionnaire(true)}
+      />
+    )}
+    </>
   );
 }

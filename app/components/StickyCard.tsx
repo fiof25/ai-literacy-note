@@ -4,11 +4,11 @@ import { useState } from 'react';
 import type { Sticky } from '@/lib/types';
 
 const AI_TYPE_LABELS: Record<string, string> = {
-  generative: '🎨 Generative',
-  predictive: '📊 Predictive',
-  automation: '⚙️ Automation',
-  conversational: '💬 Conversational',
-  unsure: '🤷 Mixed / Unsure',
+  generative: 'Generative',
+  predictive: 'Predictive',
+  automation: 'Automation',
+  conversational: 'Conversational',
+  unsure: 'Mixed / Unsure',
 };
 
 const REALNESS_LABELS: Record<string, { label: string; bg: string; text: string }> = {
@@ -18,7 +18,7 @@ const REALNESS_LABELS: Record<string, { label: string; bg: string; text: string 
 };
 
 const SENTIMENT_LABELS: Record<string, string> = {
-  '-2': '😟', '-1': '😕', '0': '😐', '1': '🙂', '2': '😊',
+  '-2': '−−', '-1': '−', '0': '', '1': '+', '2': '++',
 };
 
 const PIN_COLORS = ['#E05252', '#4A90D9', '#5CB85C', '#E09A2B', '#9B59B6'];
@@ -157,8 +157,7 @@ export default function StickyCard({ sticky, isDragging, onMouseDown, onDelete }
           {sticky.profession ? `, ${sticky.profession}` : ''}
         </span>
         <span style={{ fontSize: '10px', color: '#5a5a5a' }} className="flex items-center gap-1 shrink-0 ml-2">
-          <span>💬</span>
-          <span>{sticky.comments.length}</span>
+          <span>{sticky.comments.length} comments</span>
           <span className="opacity-55 ml-0.5">· {timeAgo(sticky.createdAt)}</span>
         </span>
       </div>
